@@ -36,16 +36,12 @@ It is intentionally preserved separately from future development.
 
 ## Optimization architecture
 
-A candidate solution consists of
+A candidate solution consists of two parts:
 
-\[
-(\mathbf{y},\mathbf{x}),
-\]
+- **y** — discrete structural decisions defining the process topology;
+- **x** — continuous operating and design variables.
 
-where:
-
-- \(\mathbf{y}\) contains discrete structural decisions defining the process topology;
-- \(\mathbf{x}\) contains continuous operating and design variables.
+In compact notation, a candidate process design is represented as `(y, x)`.
 
 CORAL operates primarily on the structural search space. Candidate topologies are generated and modified through reef-inspired population operators. Structural repair ensures that candidates belong to the admissible topology set.
 
@@ -89,8 +85,8 @@ The deterministic reference calculation enumerates all admissible structures and
 The resulting reference is:
 
 ```text
-Objective:          68.009744051065
-Selected processes: 2, 4, 6, 8
+Objective:           68.009744051065
+Selected processes:  2, 4, 6, 8
 ```
 
 The reference solver is provided in:
