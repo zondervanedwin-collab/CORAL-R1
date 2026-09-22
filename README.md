@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/CORAL_banner.png" alt="CORAL — Coral reef Optimization for Adaptive Layouts" width="100%">
+  <img src="CORAL_banner.png" alt="CORAL — Coral reef Optimization for Adaptive Layouts" width="100%">
 </p>
 
 # CORAL
