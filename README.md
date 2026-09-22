@@ -107,7 +107,7 @@ The frozen release is tagged:
 
 ## Eight-process synthesis benchmark
 
-The principal validation case is the classical eight-process synthesis problem.
+The principal validation case is the classical eight-process process-network synthesis problem.
 
 The deterministic reference calculation enumerates all **12 logically admissible process topologies** and solves the continuous nonlinear subproblem using multistart SQP.
 
@@ -119,6 +119,29 @@ Selected processes:  2, 4, 6, 8
 ```
 
 This deterministic reference is used as the numerical benchmark for the CORAL-R1 experiments.
+
+### Benchmark provenance
+
+The eight-process synthesis problem is an established benchmark in process systems engineering and was not developed specifically for CORAL.
+
+The problem originates from the process-network synthesis work of Duran and Grossmann and was subsequently used by Türkay and Grossmann in the development of logic-based MINLP methods. The CORAL-R1 benchmark implementation follows the structure of the publicly available GAMS Model Library `LOGMIP3` formulation, **Synthesis of 8 Processes**.
+
+The known reference solution selects processes **2, 4, 6, and 8**, with an objective value of approximately **68.01**. The independent deterministic enumeration included in CORAL-R1 reproduces this solution as:
+
+```text
+Objective value:     68.009744051065
+Selected processes:  2, 4, 6, 8
+```
+
+Key literature:
+
+- Duran, M.A. (1984). *A Mixed-Integer Nonlinear Programming Approach for Process Systems Synthesis*. PhD thesis, Carnegie Mellon University.
+- Türkay, M.; Grossmann, I.E. (1996). “Logic-based MINLP algorithms for the optimal synthesis of process networks.” *Computers & Chemical Engineering*, 20(8), 959–978.
+
+The public benchmark formulation is available from the GAMS Model Library as:
+
+**LOGMIP3 — Synthesis of 8 Processes**  
+https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_logmip3.html
 
 ---
 
@@ -149,6 +172,8 @@ The results therefore support CORAL-R1 as a **topology-oriented hybrid optimizat
 ```text
 CORAL-R1/
 │
+├── CORAL_banner.png
+│
 ├── src/
 │   └── CORALSuperstructureOptimizer_R1.m
 │
@@ -178,7 +203,6 @@ CORAL-R1/
 │   └── figures/
 │
 ├── docs/
-│   ├── CORAL_banner.png
 │   └── reproducibility.md
 │
 ├── README.md
