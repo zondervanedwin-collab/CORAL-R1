@@ -1,170 +1,153 @@
+<p align="center">
+  <img src="docs/CORAL_banner.png" alt="CORAL — Coral reef Optimization for Adaptive Layouts" width="100%">
+</p>
+
 # CORAL
 
 **Coral reef Optimization for Adaptive Layouts**
 
-CORAL is a topology-aware optimization framework for chemical process superstructures. It represents candidate process designs as corals living on a computational reef, where different process topologies behave as competing species.
+CORAL is a topology-aware optimization framework for chemical process superstructures. It combines coral-reef-inspired structural exploration with deterministic constrained nonlinear programming for continuous design-variable refinement.
 
-Through settlement, budding, competition, depredation, bleaching, and recolonization, CORAL explores the discrete structural space of a process superstructure. Promising fixed topologies are subsequently refined using deterministic constrained nonlinear programming (NLP).
+This repository contains **CORAL-R1**, the frozen and reproducible research version associated with the initial process-superstructure study.
 
-The resulting architecture combines:
-
-- nature-inspired global exploration of process topology;
-- explicit structural feasibility and topology repair;
-- diversity-preserving population mechanisms;
-- adaptive search operators; and
-- deterministic constrained NLP refinement of continuous variables.
-
-> **CORAL explores the structure; constrained NLP refines the design.**
+> **CORAL-R1 is preserved as a research release.**  
+> Future development of CORAL may extend the ecological mechanisms, computational architecture, and application scope, while this repository remains the reproducible reference implementation for the R1 study.
 
 ---
 
-## CORAL-R1
+## Concept
 
-This repository contains the evolving CORAL project together with the frozen **CORAL-R1** implementation used for the computational experiments accompanying the manuscript.
+CORAL treats alternative process structures as competing species on a computational reef.
 
-CORAL-R1 should be regarded as a reproducible research release rather than as the final form of the algorithm. Future versions may introduce new search mechanisms, alternative ecological operators, additional benchmark problems, and more detailed connections between coral-reef ecology and computational optimization.
+A candidate solution consists of:
 
-The frozen implementation is:
+- a discrete process topology, **y**;
+- continuous design variables, **x**;
+- an objective value;
+- feasibility information.
 
-```text
-src/CORALSuperstructureOptimizer_R1.m
-```
+The reef provides a finite computational environment in which candidate structures can settle, reproduce, compete, disappear, and recolonize.
 
-It is intentionally preserved separately from future development.
+The biological analogy is used to organize structural search:
+
+| Reef ecology | CORAL interpretation |
+|---|---|
+| Reef | Computational population |
+| Coral colony | Candidate process design |
+| Species | Process topology |
+| Settlement | Introduction of a candidate |
+| Budding | Local generation of related candidates |
+| Competition | Selection under limited population capacity |
+| Depredation | Removal of poor candidates |
+| Bleaching / disturbance | Deliberate population disruption |
+| Recolonization | Introduction of new structural diversity |
+| Diversity | Coexistence of alternative topologies |
+| Local refinement | Constrained nonlinear optimization |
+
+CORAL is **inspired by coral-reef ecology**, rather than intended as a biologically faithful reef model.
 
 ---
 
 ## Optimization architecture
 
-A candidate solution consists of two parts:
-
-- **y** — discrete structural decisions defining the process topology;
-- **x** — continuous operating and design variables.
-
-In compact notation, a candidate process design is represented as `(y, x)`.
-
-CORAL operates primarily on the structural search space. Candidate topologies are generated and modified through reef-inspired population operators. Structural repair ensures that candidates belong to the admissible topology set.
-
-For promising fixed topologies, a constrained NLP subproblem is solved using MATLAB `fmincon` with SQP.
-
-Conceptually:
+CORAL separates structural exploration from continuous optimization.
 
 ```text
-Process superstructure
-        |
-        v
-  CORAL reef search
-        |
-        |  discrete topology y
-        v
-Topology repair / feasibility
-        |
-        v
-Constrained local NLP
-        |
-        |  continuous variables x
-        v
-   Refined process design
-        |
-        v
-Selection and reef evolution
+                    CORAL reef
+                        |
+                        v
+              discrete topology search
+                        |
+                        v
+                 topology repair
+                        |
+                        v
+              fixed process topology
+                        |
+                        v
+          constrained local NLP refinement
+                 (fmincon / SQP)
+                        |
+                        v
+             feasibility + objective
+                        |
+                        v
+             return candidate to reef
 ```
 
-This hybridization is important for constrained process synthesis: in the CORAL-R1 experiments, population search alone did not reliably produce continuously feasible solutions, whereas coupling structural exploration to constrained local NLP did.
+The reef therefore explores the discrete structural space, while deterministic constrained nonlinear programming refines the continuous variables for promising fixed topologies.
+
+This hybrid architecture is a central feature of CORAL-R1.
+
+---
+
+## CORAL-R1
+
+CORAL-R1 is the frozen implementation corresponding to the first systematic computational validation of the framework.
+
+The release includes:
+
+- the CORAL-R1 optimizer;
+- a reproducible eight-process synthesis benchmark;
+- deterministic reference enumeration;
+- component-ablation experiments;
+- equal-oracle-budget comparisons;
+- GA and GA+local-NLP baselines;
+- local-NLP probability and intensity studies;
+- parameter and reef-size sensitivity studies;
+- raw computational results;
+- consolidated statistical tables and figures;
+- documentation for reproducing the experiments.
+
+The frozen release is tagged:
+
+**v1.0.0 — CORAL-R1**
 
 ---
 
 ## Eight-process synthesis benchmark
 
-The principal CORAL-R1 validation problem is the classic **eight-process synthesis benchmark**.
+The principal validation case is the classical eight-process synthesis problem.
 
-The benchmark contains eight possible processes and exactly **12 logically admissible process topologies**.
+The deterministic reference calculation enumerates all **12 logically admissible process topologies** and solves the continuous nonlinear subproblem using multistart SQP.
 
-The deterministic reference calculation enumerates all admissible structures and applies multistart SQP to each fixed topology.
-
-The resulting reference is:
+Reference solution:
 
 ```text
-Objective:           68.009744051065
+Objective value:     68.009744051065
 Selected processes:  2, 4, 6, 8
 ```
 
-The reference solver is provided in:
-
-```text
-experiments/reference_enumeration/
-```
-
-and the complete benchmark definition is available in:
-
-```text
-benchmarks/eight_process/
-```
+This deterministic reference is used as the numerical benchmark for the CORAL-R1 experiments.
 
 ---
 
-## What CORAL-R1 shows
+## Main computational findings
 
 The computational study supports three main conclusions.
 
 ### 1. CORAL can recover the reference topology
 
-With constrained local refinement enabled, CORAL-R1 consistently recovered the P2-P4-P6-P8 topology in the reported main and controlled experiments.
+In the principal repeated-run experiments, CORAL-R1 recovered the process topology **2–4–6–8** and produced feasible solutions under the reported experimental settings.
 
-### 2. Hybridization is essential
+### 2. Hybridization with constrained NLP is essential
 
-The strongest result of the study is not that one population method dominates the others, but that deterministic constrained NLP refinement is critical for this constrained process-superstructure problem.
+Experiments without local constrained NLP refinement generally failed to obtain continuous feasibility on the eight-process problem.
 
-In the controlled comparisons:
+When structural search was coupled to deterministic constrained NLP refinement, CORAL, CRO-like search, and GA-based search could all recover feasible high-quality solutions under the tested conditions.
 
-- CORAL without local NLP did not reliably reach continuous feasibility;
-- the reduced CRO-like search without local NLP showed the same difficulty;
-- direct constrained GA did not obtain feasible solutions within the tested oracle budget;
-- CORAL + NLP, CRO-like + NLP, and GA + local NLP all successfully recovered feasible reference-topology solutions in the corresponding hybrid experiments.
+### 3. No superiority claim is made
 
-### 3. CORAL is a topology-oriented framework, not a demonstrated superior optimizer
+On this relatively small benchmark, the topology-aware ecological mechanisms of CORAL-R1 did **not** demonstrate superiority over simpler hybrid search approaches.
 
-On this relatively small benchmark, the topology-aware ecological mechanisms of CORAL did **not** demonstrate solution-quality superiority over simpler hybrid approaches.
-
-The results therefore support CORAL as a topology-oriented global-search framework and research architecture rather than a claim of universal algorithmic superiority.
-
-The larger research question is whether topology-aware and ecologically motivated search mechanisms become advantageous for larger, more structurally complex process-superstructure problems.
-
----
-
-## Minimal example
-
-A minimal CORAL-R1 run on the eight-process benchmark is provided in:
-
-```text
-examples/run_CORAL_R1_eight_process.m
-```
-
-From the repository root, ensure that the source and benchmark directories are on the MATLAB path and run the example.
-
-The script uses the frozen CORAL-R1 settings and reports:
-
-- best raw objective;
-- selected process topology;
-- equality and inequality residuals;
-- logical feasibility;
-- iterations;
-- total oracle calls;
-- local NLP calls;
-- topology repairs; and
-- runtime.
-
-Because feasibility is accepted at a finite numerical tolerance, a raw CORAL objective can occasionally lie marginally below the high-accuracy enumerated reference. This should not be interpreted as a better global solution. High-accuracy fixed-topology polishing returns the deterministic reference value.
+The results therefore support CORAL-R1 as a **topology-oriented hybrid optimization framework and research platform**, rather than as evidence that coral-inspired search universally outperforms alternative optimization methods.
 
 ---
 
 ## Repository structure
 
 ```text
-CORAL/
-├── README.md
-├── LICENSE
-├── .gitignore
+CORAL-R1/
 │
 ├── src/
 │   └── CORALSuperstructureOptimizer_R1.m
@@ -174,6 +157,11 @@ CORAL/
 │
 ├── benchmarks/
 │   └── eight_process/
+│       ├── eight_process_model.m
+│       ├── eight_process_constraints.m
+│       ├── eight_process_bounds.m
+│       ├── eight_process_logic_feasible.m
+│       └── eight_process_topology_repair.m
 │
 ├── experiments/
 │   ├── reference_enumeration/
@@ -181,135 +169,180 @@ CORAL/
 │   ├── equal_budget/
 │   ├── GA_baselines/
 │   ├── localNLP_probability/
-│   ├── localNLP_intensity/
 │   ├── sensitivity/
-│   └── consolidation/
+│   └── consolidate/
 │
-└── results/
-    ├── raw/
-    ├── summary/
-    └── figures/
+├── results/
+│   ├── raw/
+│   ├── summary/
+│   └── figures/
+│
+├── docs/
+│   ├── CORAL_banner.png
+│   └── reproducibility.md
+│
+├── README.md
+├── LICENSE
+├── CITATION.cff
+├── CHANGELOG.md
+└── .gitignore
 ```
 
-### `src/`
-
-Frozen CORAL-R1 optimizer implementation.
-
-### `benchmarks/`
-
-Mathematical benchmark definitions, constraints, bounds, structural logic, and topology repair.
-
-### `examples/`
-
-Small runnable examples intended as the easiest entry point for new users.
-
-### `experiments/`
-
-Frozen scripts used for the CORAL-R1 computational validation, including:
-
-- deterministic enumeration;
-- component ablation;
-- local-NLP probability sensitivity;
-- local-NLP intensity sensitivity;
-- equal-oracle-budget comparisons;
-- direct and hybrid GA baselines;
-- parameter and reef-size sensitivity; and
-- final statistical consolidation.
-
-### `results/raw/`
-
-Preserved run-level CSV files, summary CSV files, and MATLAB result archives from the computational campaign.
-
-### `results/summary/`
-
-Publication-facing consolidated tables, including confidence intervals.
-
-### `results/figures/`
-
-Figures generated by the final statistical consolidation.
+The `localNLP_probability` directory also contains the experiment examining local-NLP iteration intensity.
 
 ---
 
-## Reproducing the CORAL-R1 study
+## Quick start
 
-The recommended order is:
+MATLAB users can start with:
 
-1. Run the deterministic eight-process reference enumeration.
-2. Run the minimal CORAL-R1 example.
-3. Run the local-NLP probability sensitivity experiment.
-4. Run the component comparison.
-5. Run the equal-oracle-budget comparison.
-6. Run the GA baselines.
-7. Run the parameter and reef-size sensitivity studies.
-8. Run the local-NLP intensity sensitivity experiment.
-9. Run the statistical consolidation script.
+```matlab
+run('examples/run_CORAL_R1_eight_process.m')
+```
 
-The complete stochastic campaigns can require substantial computation. Frozen run-level and consolidated results are therefore included in `results/` so that the reported analysis can be inspected without rerunning the entire campaign.
+The example:
 
-Oracle calls are the preferred computational-effort metric for comparisons because wall-clock measurements can depend strongly on hardware and external system conditions.
+1. loads the eight-process benchmark;
+2. initializes CORAL-R1;
+3. activates topology repair and explicit nonlinear constraints;
+4. performs topology search with constrained local NLP refinement;
+5. reports the final objective, topology, feasibility residuals, and computational counters.
+
+For a complete reproduction of the computational study, see:
+
+```text
+docs/reproducibility.md
+```
 
 ---
 
-## MATLAB requirements
+## Reproducing the study
 
-CORAL-R1 is implemented in MATLAB.
+A logical reproduction sequence is:
 
-The experiments require:
+1. **Deterministic reference enumeration**
+2. **Single CORAL-R1 example**
+3. **Local-NLP probability sensitivity**
+4. **Component ablation**
+5. **Equal-oracle-budget comparison**
+6. **GA and GA+local-NLP baselines**
+7. **Parameter and reef-size sensitivity**
+8. **Local-NLP intensity sensitivity**
+9. **Statistical consolidation**
 
-- **Optimization Toolbox** — constrained local optimization using `fmincon`;
-- **Global Optimization Toolbox** — required for the GA baseline experiments.
+The repository includes frozen output files so that the published numerical evidence can be inspected without rerunning the more computationally expensive campaigns.
 
-No specific MATLAB release is claimed here; the frozen source and experiment scripts document the functions used.
+---
+
+## Computational effort
+
+For comparisons between algorithms, CORAL-R1 primarily uses **oracle evaluations** rather than wall-clock time.
+
+This is intentional. Wall-clock measurements can depend strongly on hardware, MATLAB configuration, operating-system scheduling, and external computational load.
+
+Oracle counts provide a more reproducible measure of computational effort across the reported experiments.
+
+Runtime information is retained where available, but should be interpreted as secondary evidence.
 
 ---
 
 ## Reproducibility philosophy
 
-CORAL-R1 separates three levels of evidence:
+CORAL-R1 distinguishes between:
 
-**Code**  
-The exact optimizer, benchmark definitions, and experiment scripts are preserved.
+- **frozen research evidence**, corresponding to the reported computational study;
+- **future algorithm development**, which may modify CORAL beyond R1.
 
-**Raw computational evidence**  
-Run-level results and MATLAB archives are provided in `results/raw/`.
+The R1 implementation and results are therefore retained as a stable reference rather than continually modified to reflect later improvements.
 
-**Publication-facing evidence**  
-Consolidated tables, confidence intervals, and figures are provided in `results/summary/` and `results/figures/`.
+The aim is that the computational claims associated with the R1 study remain inspectable and reproducible even as the broader CORAL project evolves.
 
-This separation is intentional: the repository preserves not only the final figures but also the computational evidence from which they were derived.
+---
+
+## Software requirements
+
+CORAL-R1 is implemented in **MATLAB**.
+
+The computational study uses:
+
+- **Optimization Toolbox** — constrained nonlinear optimization using `fmincon`;
+- **Global Optimization Toolbox** — genetic-algorithm baseline experiments.
+
+No specific MATLAB release is claimed as a requirement.
+
+---
+
+## Results
+
+Frozen computational outputs are available in:
+
+```text
+results/raw/
+```
+
+Consolidated statistical tables are available in:
+
+```text
+results/summary/
+```
+
+Publication-facing figures are available in:
+
+```text
+results/figures/
+```
+
+These include the component comparison, equal-budget experiments, baseline comparisons, local-NLP sensitivity, and reef-size sensitivity.
 
 ---
 
 ## Project status
 
-**CORAL-R1** is the frozen version associated with the present process-superstructure study.
+**CORAL-R1 / v1.0.0** is a frozen research release.
 
-The broader **CORAL** project remains under development.
+The broader CORAL project remains open to further development. Potential future directions include:
 
-Future work may investigate:
+- richer structural search mechanisms;
+- larger chemical-process superstructures;
+- alternative deterministic local solvers;
+- parallel reef evaluation;
+- dynamic and uncertain process-design problems;
+- deeper investigation of ecological mechanisms;
+- collaboration with coral-reef ecologists to explore whether greater ecological fidelity can generate useful new optimization mechanisms.
 
-- larger process-superstructure problems;
-- alternative topology representations;
-- improved diversity and niche mechanisms;
-- ecological disturbance and recolonization strategies;
-- adaptive structural operators;
-- multiobjective optimization;
-- uncertainty and changing operating conditions; and
-- closer collaboration with coral-reef ecologists to investigate whether greater ecological fidelity can generate useful computational mechanisms.
+Such developments should be treated as extensions beyond CORAL-R1 rather than modifications of the frozen R1 evidence.
 
 ---
 
 ## Citation
 
-A `CITATION.cff` file will provide the preferred citation for the software release.
+If you use CORAL-R1 in research, please cite the software and the associated publication when available.
 
-When using CORAL-R1 before the associated article has received its final bibliographic information, please cite the repository and the corresponding software release.
+Citation metadata are provided in:
+
+```text
+CITATION.cff
+```
+
+GitHub can generate citation formats directly from this metadata using **Cite this repository**.
+
+---
+
+## Historical CORAL project
+
+CORAL-R1 is the frozen reproducibility repository for the R1 study.
+
+The original CORAL project and its development history are maintained separately in the main **CORAL** repository under `zondervanedwin-collab`.
+
+This separation allows the original project to continue evolving while preserving CORAL-R1 as an immutable scientific reference.
 
 ---
 
 ## License
 
-CORAL is released under the **MIT License**. See `LICENSE` for details.
+CORAL-R1 is released under the **MIT License**.
+
+See `LICENSE` for details.
 
 ---
 
@@ -320,4 +353,10 @@ Sustainable Process Technology
 University of Twente  
 The Netherlands
 
-CORAL was developed as a research framework for exploring topology-aware and nature-inspired optimization of chemical process superstructures.
+ORCID: 0000-0003-2659-1622
+
+---
+
+**CORAL — Coral reef Optimization for Adaptive Layouts**
+
+*Nature inspires. Algorithms evolve. Layouts improve.*
