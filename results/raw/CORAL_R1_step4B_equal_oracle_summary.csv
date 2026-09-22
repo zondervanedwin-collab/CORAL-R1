@@ -1,0 +1,3 @@
+Configuration,n,BudgetHitRate,FeasibleRate,TopologyRecoveryRate,MedianRawObjective,MedianAbsGapPercent,MedianBudgetOracleCalls,MedianRuntime,MedianLocalNLPCalls
+CRO_like_NLP,10,0.1,1,1,68.0097440509739,1.34012144859e-10,1289638.5,141.94607715,2733
+CORAL_full,10,0.4,1,1,68.0097440183888,4.80463680820871e-08,1459242.5,223.28282655,2838
