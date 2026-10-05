@@ -1,0 +1,1319 @@
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 1
+Eight-Process Synthesis - Algebraic MINLP for BARON
+C o m p i l a t i o n
+
+
+   2   
+      Algebraic MINLP reformulation of the classical eight-process
+      synthesis problem used in GAMS LOGMIP3.
+       
+      Original references:
+      Duran, M.A. PhD thesis, Carnegie Mellon University, 1984.
+       
+      Turkay, M.; Grossmann, I.E.
+      Logic-based MINLP algorithms for the optimal synthesis of process networks.
+      Computers & Chemical Engineering 20 (1996) 959-978.
+       
+      Purpose of this version:
+      Deterministic global MINLP benchmark for comparison with CORAL-R1.
+       
+      Revision note:
+      This publication-ready version removes the artificial blanket bound
+      X.up(I)=20 used in an earlier comparison model. Finite stream bounds are
+      instead derived analytically from the canonical LOGMIP3 equations, explicit
+      bounds, and active/off disjunctions. Unit-specific big-M constants are then
+      derived from those valid bounds.
+  24   
+  25   
+  26  Set
+  27      I 'process streams' /1*25/
+  28      J 'process units'   /1*8/;
+  29   
+  30   
+  31  Parameter CV(I) 'variable cost coefficients'
+  32         /  3 = -10
+  33            5 = -15
+  34            9 = -40
+  35           19 =  25
+  36           21 =  35
+  37           25 = -35
+  38           17 =  80
+  39           14 =  15
+  40           10 =  15
+  41            2 =   1
+  42            4 =   1
+  43           18 = -65
+  44           20 = -60
+  45           22 = -80 /;
+  46   
+  47   
+  48  Parameters
+  49      UB(I) 'analytically valid upper bounds for process streams'
+  50      BM(J) 'unit-specific big-M constants for disjunctive equations';
+  51   
+  52  * Bounds below are implied by the canonical LOGMIP3 model.
+  53  * They replace the artificial blanket bound X.up(I)=20 used in an earlier
+  54  * comparison model. No feasible integer solution of the canonical model is
+  55  * excluded by these bounds.
+  56  UB('1')  = exp(2)-1 + exp(2/1.2)-1;
+  57  UB('2')  = exp(2)-1;
+  58  UB('3')  = 2;
+  59  UB('4')  = exp(2/1.2)-1;
+  60  UB('5')  = 2;
+  61  UB('6')  = 4;
+  62  UB('7')  = 4;
+  63  UB('8')  = 4;
+  64  UB('9')  = 2;
+  65  UB('10') = 1;
+  66  UB('11') = 4;
+  67  UB('12') = 4;
+  68  UB('13') = 4;
+  69  UB('14') = 1;
+  70  UB('15') = 4;
+  71  UB('16') = 2;
+  72  UB('17') = 2;
+  73  UB('18') = log(4);
+  74  UB('19') = 2;
+  75  UB('20') = 1.5*log(3);
+  76  UB('21') = 2;
+  77  UB('22') = log(3);
+  78  UB('23') = 1.5*log(3) + log(3);
+  79  UB('24') = 1.5*log(3) + log(3);
+  80  UB('25') = 3;
+  81   
+  82  * Valid residual bounds over the variable box above. These constants are
+  83  * used only to deactivate the corresponding process equation when Y(j)=0.
+  84  BM('1') = exp(2)-1;
+  85  BM('2') = exp(2/1.2)-1;
+  86  BM('3') = 4;
+  87  BM('4') = 6.25;
+  88  BM('5') = 4;
+  89  BM('6') = 2;
+  90  BM('7') = 2;
+  91  BM('8') = 3;
+  92   
+  93   
+  94  Variable
+  95      PROF 'objective';
+  96   
+  97  Binary Variable
+  98      Y(J) 'process-unit selection';
+  99   
+ 100  Positive Variable
+ 101      X(I)  'process streams'
+ 102      CF(J) 'fixed costs';
+ 103   
+ 104   
+ 105  * ------------------------------------------------------------
+ 106  * Bounds
+ 107  * ------------------------------------------------------------
+ 108   
+ 109  X.up(I) = UB(I);
+ 110   
+ 111   
+ 112  Equation
+ 113   
+ 114  * Common process equations
+ 115      MASSBAL1
+ 116      MASSBAL2
+ 117      MASSBAL3
+ 118      MASSBAL4
+ 119      MASSBAL5
+ 120      MASSBAL6
+ 121      MASSBAL7
+ 122      MASSBAL8
+ 123   
+ 124      SPECS1
+ 125      SPECS2
+ 126      SPECS3
+ 127      SPECS4
+ 128   
+ 129  * Flow/unit activation
+ 130      LOGICAL1
+ 131      LOGICAL2
+ 132      LOGICAL3
+ 133      LOGICAL4
+ 134      LOGICAL5
+ 135      LOGICAL6
+ 136      LOGICAL7
+ 137      LOGICAL8
+ 138   
+ 139  * Exclusive choices
+ 140      XOR12
+ 141      XOR45
+ 142      XOR67
+ 143   
+ 144  * Logical implications
+ 145      IMP0
+ 146      IMP1
+ 147      IMP2
+ 148      IMP3
+ 149      IMP4
+ 150      IMP5
+ 151      IMP6
+ 152      IMP7
+ 153      IMP8
+ 154      IMP9
+ 155   
+ 156  * Unit 1
+ 157      U1A
+ 158      U1B
+ 159      U1OFF2
+ 160      U1OFF3
+ 161      CF1
+ 162   
+ 163  * Unit 2
+ 164      U2A
+ 165      U2B
+ 166      U2OFF4
+ 167      U2OFF5
+ 168      CF2
+ 169   
+ 170  * Unit 3
+ 171      U3A
+ 172      U3B
+ 173      U3OFF9
+ 174      CF3
+ 175   
+ 176  * Unit 4
+ 177      U4A
+ 178      U4B
+ 179      U4OFF12
+ 180      U4OFF13
+ 181      U4OFF14
+ 182      CF4
+ 183   
+ 184  * Unit 5
+ 185      U5A
+ 186      U5B
+ 187      U5OFF15
+ 188      U5OFF16
+ 189      CF5
+ 190   
+ 191  * Unit 6
+ 192      U6A
+ 193      U6B
+ 194      U6OFF19
+ 195      U6OFF20
+ 196      CF6
+ 197   
+ 198  * Unit 7
+ 199      U7A
+ 200      U7B
+ 201      U7OFF21
+ 202      U7OFF22
+ 203      CF7
+ 204   
+ 205  * Unit 8
+ 206      U8A
+ 207      U8B
+ 208      U8OFF10
+ 209      U8OFF17
+ 210      U8OFF18
+ 211      U8OFF25
+ 212      CF8
+ 213   
+ 214      OBJECTIVE;
+ 215   
+ 216   
+ 217  * ------------------------------------------------------------
+ 218  * Common process equations
+ 219  * ------------------------------------------------------------
+ 220   
+ 221  MASSBAL1..
+ 222      X('13') =e= X('19') + X('21');
+ 223   
+ 224  MASSBAL2..
+ 225      X('17') =e= X('9') + X('16') + X('25');
+ 226   
+ 227  MASSBAL3..
+ 228      X('11') =e= X('12') + X('15');
+ 229   
+ 230  MASSBAL4..
+ 231      X('3') + X('5') =e= X('6') + X('11');
+ 232   
+ 233  MASSBAL5..
+ 234      X('6') =e= X('7') + X('8');
+ 235   
+ 236  MASSBAL6..
+ 237      X('23') =e= X('20') + X('22');
+ 238   
+ 239  MASSBAL7..
+ 240      X('23') =e= X('14') + X('24');
+ 241   
+ 242  MASSBAL8..
+ 243      X('1') =e= X('2') + X('4');
+ 244   
+ 245   
+ 246  SPECS1..
+ 247      X('10') =l= 0.8*X('17');
+ 248   
+ 249  SPECS2..
+ 250      X('10') =g= 0.4*X('17');
+ 251   
+ 252  SPECS3..
+ 253      X('12') =l= 5*X('14');
+ 254   
+ 255  SPECS4..
+ 256      X('12') =g= 2*X('14');
+ 257   
+ 258   
+ 259  * ------------------------------------------------------------
+ 260  * Flow permitted only when corresponding unit exists
+ 261  * ------------------------------------------------------------
+ 262   
+ 263  LOGICAL1..
+ 264      X('2') + X('3') =l= 10*Y('1');
+ 265   
+ 266  LOGICAL2..
+ 267      X('4') + X('5') =l= 10*Y('2');
+ 268   
+ 269  LOGICAL3..
+ 270      X('9') =l= 10*Y('3');
+ 271   
+ 272  LOGICAL4..
+ 273      X('12') + X('14') =l= 10*Y('4');
+ 274   
+ 275  LOGICAL5..
+ 276      X('15') =l= 10*Y('5');
+ 277   
+ 278  LOGICAL6..
+ 279      X('19') =l= 10*Y('6');
+ 280   
+ 281  LOGICAL7..
+ 282      X('21') =l= 10*Y('7');
+ 283   
+ 284  LOGICAL8..
+ 285      X('10') + X('17') =l= 10*Y('8');
+ 286   
+ 287   
+ 288  * ------------------------------------------------------------
+ 289  * Logical structure
+ 290  * ------------------------------------------------------------
+ 291   
+ 292  XOR12..
+ 293      Y('1') + Y('2') =e= 1;
+ 294   
+ 295  XOR45..
+ 296      Y('4') + Y('5') =e= 1;
+ 297   
+ 298  XOR67..
+ 299      Y('6') + Y('7') =e= 1;
+ 300   
+ 301   
+ 302  * y1 -> y3 or y4 or y5
+ 303  IMP0..
+ 304      Y('1') =l= Y('3') + Y('4') + Y('5');
+ 305   
+ 306  * y2 -> y3 or y4 or y5
+ 307  IMP1..
+ 308      Y('2') =l= Y('3') + Y('4') + Y('5');
+ 309   
+ 310  * y3 -> y8
+ 311  IMP2..
+ 312      Y('3') =l= Y('8');
+ 313   
+ 314  * y3 -> y1 or y2
+ 315  IMP3..
+ 316      Y('3') =l= Y('1') + Y('2');
+ 317   
+ 318  * y4 -> y1 or y2
+ 319  IMP4..
+ 320      Y('4') =l= Y('1') + Y('2');
+ 321   
+ 322  * y4 -> y6 or y7
+ 323  IMP5..
+ 324      Y('4') =l= Y('6') + Y('7');
+ 325   
+ 326  * y5 -> y1 or y2
+ 327  IMP6..
+ 328      Y('5') =l= Y('1') + Y('2');
+ 329   
+ 330  * y5 -> y8
+ 331  IMP7..
+ 332      Y('5') =l= Y('8');
+ 333   
+ 334  * y6 -> y4
+ 335  IMP8..
+ 336      Y('6') =l= Y('4');
+ 337   
+ 338  * y7 -> y4
+ 339  IMP9..
+ 340      Y('7') =l= Y('4');
+ 341   
+ 342   
+ 343  * ------------------------------------------------------------
+ 344  * Unit 1
+ 345  *
+ 346  * If Y1 = 1:
+ 347  *       exp(X3)-1 = X2
+ 348  *
+ 349  * If Y1 = 0:
+ 350  *       X2 = X3 = 0
+ 351  * ------------------------------------------------------------
+ 352   
+ 353  U1A..
+ 354      exp(X('3')) - 1 - X('2') =l= BM('1')*(1-Y('1'));
+ 355   
+ 356  U1B..
+ 357      exp(X('3')) - 1 - X('2') =g= -BM('1')*(1-Y('1'));
+ 358   
+ 359  U1OFF2..
+ 360      X('2') =l= UB('2')*Y('1');
+ 361   
+ 362  U1OFF3..
+ 363      X('3') =l= UB('3')*Y('1');
+ 364   
+ 365  CF1..
+ 366      CF('1') =e= 5*Y('1');
+ 367   
+ 368   
+ 369  * ------------------------------------------------------------
+ 370  * Unit 2
+ 371  * ------------------------------------------------------------
+ 372   
+ 373  U2A..
+ 374      exp(X('5')/1.2) - 1 - X('4') =l= BM('2')*(1-Y('2'));
+ 375   
+ 376  U2B..
+ 377      exp(X('5')/1.2) - 1 - X('4') =g= -BM('2')*(1-Y('2'));
+ 378   
+ 379  U2OFF4..
+ 380      X('4') =l= UB('4')*Y('2');
+ 381   
+ 382  U2OFF5..
+ 383      X('5') =l= UB('5')*Y('2');
+ 384   
+ 385  CF2..
+ 386      CF('2') =e= 8*Y('2');
+ 387   
+ 388   
+ 389  * ------------------------------------------------------------
+ 390  * Unit 3
+ 391  * ------------------------------------------------------------
+ 392   
+ 393  U3A..
+ 394      1.5*X('9') + X('10') - X('8')
+ 395         =l= BM('3')*(1-Y('3'));
+ 396   
+ 397  U3B..
+ 398      1.5*X('9') + X('10') - X('8')
+ 399         =g= -BM('3')*(1-Y('3'));
+ 400   
+ 401  U3OFF9..
+ 402      X('9') =l= UB('9')*Y('3');
+ 403   
+ 404  CF3..
+ 405      CF('3') =e= 6*Y('3');
+ 406   
+ 407   
+ 408  * ------------------------------------------------------------
+ 409  * Unit 4
+ 410  * ------------------------------------------------------------
+ 411   
+ 412  U4A..
+ 413      1.25*(X('12') + X('14')) - X('13')
+ 414         =l= BM('4')*(1-Y('4'));
+ 415   
+ 416  U4B..
+ 417      1.25*(X('12') + X('14')) - X('13')
+ 418         =g= -BM('4')*(1-Y('4'));
+ 419   
+ 420  U4OFF12..
+ 421      X('12') =l= UB('12')*Y('4');
+ 422   
+ 423  U4OFF13..
+ 424      X('13') =l= UB('13')*Y('4');
+ 425   
+ 426  U4OFF14..
+ 427      X('14') =l= UB('14')*Y('4');
+ 428   
+ 429  CF4..
+ 430      CF('4') =e= 10*Y('4');
+ 431   
+ 432   
+ 433  * ------------------------------------------------------------
+ 434  * Unit 5
+ 435  * ------------------------------------------------------------
+ 436   
+ 437  U5A..
+ 438      X('15') - 2*X('16')
+ 439         =l= BM('5')*(1-Y('5'));
+ 440   
+ 441  U5B..
+ 442      X('15') - 2*X('16')
+ 443         =g= -BM('5')*(1-Y('5'));
+ 444   
+ 445  U5OFF15..
+ 446      X('15') =l= UB('15')*Y('5');
+ 447   
+ 448  U5OFF16..
+ 449      X('16') =l= UB('16')*Y('5');
+ 450   
+ 451  CF5..
+ 452      CF('5') =e= 6*Y('5');
+ 453   
+ 454   
+ 455  * ------------------------------------------------------------
+ 456  * Unit 6
+ 457  * ------------------------------------------------------------
+ 458   
+ 459  U6A..
+ 460      exp(X('20')/1.5) - 1 - X('19')
+ 461         =l= BM('6')*(1-Y('6'));
+ 462   
+ 463  U6B..
+ 464      exp(X('20')/1.5) - 1 - X('19')
+ 465         =g= -BM('6')*(1-Y('6'));
+ 466   
+ 467  U6OFF19..
+ 468      X('19') =l= UB('19')*Y('6');
+ 469   
+ 470  U6OFF20..
+ 471      X('20') =l= UB('20')*Y('6');
+ 472   
+ 473  CF6..
+ 474      CF('6') =e= 7*Y('6');
+ 475   
+ 476   
+ 477  * ------------------------------------------------------------
+ 478  * Unit 7
+ 479  * ------------------------------------------------------------
+ 480   
+ 481  U7A..
+ 482      exp(X('22')) - 1 - X('21')
+ 483         =l= BM('7')*(1-Y('7'));
+ 484   
+ 485  U7B..
+ 486      exp(X('22')) - 1 - X('21')
+ 487         =g= -BM('7')*(1-Y('7'));
+ 488   
+ 489  U7OFF21..
+ 490      X('21') =l= UB('21')*Y('7');
+ 491   
+ 492  U7OFF22..
+ 493      X('22') =l= UB('22')*Y('7');
+ 494   
+ 495  CF7..
+ 496      CF('7') =e= 4*Y('7');
+ 497   
+ 498   
+ 499  * ------------------------------------------------------------
+ 500  * Unit 8
+ 501  * ------------------------------------------------------------
+ 502   
+ 503  U8A..
+ 504      exp(X('18')) - 1 - X('10') - X('17')
+ 505         =l= BM('8')*(1-Y('8'));
+ 506   
+ 507  U8B..
+ 508      exp(X('18')) - 1 - X('10') - X('17')
+ 509         =g= -BM('8')*(1-Y('8'));
+ 510   
+ 511  U8OFF10..
+ 512      X('10') =l= UB('10')*Y('8');
+ 513   
+ 514  U8OFF17..
+ 515      X('17') =l= UB('17')*Y('8');
+ 516   
+ 517  U8OFF18..
+ 518      X('18') =l= UB('18')*Y('8');
+ 519   
+ 520  U8OFF25..
+ 521      X('25') =l= UB('25')*Y('8');
+ 522   
+ 523  CF8..
+ 524      CF('8') =e= 5*Y('8');
+ 525   
+ 526   
+ 527  * ------------------------------------------------------------
+ 528  * Objective
+ 529  * ------------------------------------------------------------
+ 530   
+ 531  OBJECTIVE..
+ 532      PROF =e=
+ 533         sum(J,CF(J))
+ 534       + sum(I,X(I)*CV(I))
+ 535       + 122;
+ 536   
+ 537   
+ 538  * ------------------------------------------------------------
+ 539  * Initial topology
+ 540  * ------------------------------------------------------------
+ 541   
+ 542  Y.l('1') = 1;
+ 543  Y.l('2') = 0;
+ 544  Y.l('3') = 1;
+ 545  Y.l('4') = 0;
+ 546  Y.l('5') = 0;
+ 547  Y.l('6') = 0;
+ 548  Y.l('7') = 0;
+ 549  Y.l('8') = 1;
+ 550   
+ 551   
+ 552  * ------------------------------------------------------------
+ 553  * BARON
+ 554  * ------------------------------------------------------------
+ 555   
+ 556  option MINLP = BARON;
+ 557  option optcr = 0;
+ 558  option reslim = 300;
+ 559   
+ 560  Model EIGHT_PROCESS_BARON /all/;
+ 561   
+ 562  solve EIGHT_PROCESS_BARON using MINLP minimizing PROF;
+ 563   
+ 564   
+ 565  * ------------------------------------------------------------
+ 566  * Report
+ 567  * ------------------------------------------------------------
+ 568   
+ 569  display
+ 570      PROF.l,
+ 571      Y.l,
+ 572      X.l,
+ 573      EIGHT_PROCESS_BARON.modelstat,
+ 574      EIGHT_PROCESS_BARON.solvestat,
+ 575      EIGHT_PROCESS_BARON.resusd;
+
+
+COMPILATION TIME     =        0.016 SECONDS      3 MB  40.1.1 23eb37fb WEX-WEI
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 2
+Eight-Process Synthesis - Algebraic MINLP for BARON
+Equation Listing    SOLVE EIGHT_PROCESS_BARON Using MINLP From line 562
+
+
+---- MASSBAL1  =E=  
+
+MASSBAL1..  X(13) - X(19) - X(21) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL2  =E=  
+
+MASSBAL2..  - X(9) - X(16) + X(17) - X(25) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL3  =E=  
+
+MASSBAL3..  X(11) - X(12) - X(15) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL4  =E=  
+
+MASSBAL4..  X(3) + X(5) - X(6) - X(11) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL5  =E=  
+
+MASSBAL5..  X(6) - X(7) - X(8) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL6  =E=  
+
+MASSBAL6..  - X(20) - X(22) + X(23) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL7  =E=  
+
+MASSBAL7..  - X(14) + X(23) - X(24) =E= 0 ; (LHS = 0)
+     
+
+---- MASSBAL8  =E=  
+
+MASSBAL8..  X(1) - X(2) - X(4) =E= 0 ; (LHS = 0)
+     
+
+---- SPECS1  =L=  
+
+SPECS1..  X(10) - 0.8*X(17) =L= 0 ; (LHS = 0)
+     
+
+---- SPECS2  =G=  
+
+SPECS2..  X(10) - 0.4*X(17) =G= 0 ; (LHS = 0)
+     
+
+---- SPECS3  =L=  
+
+SPECS3..  X(12) - 5*X(14) =L= 0 ; (LHS = 0)
+     
+
+---- SPECS4  =G=  
+
+SPECS4..  X(12) - 2*X(14) =G= 0 ; (LHS = 0)
+     
+
+---- LOGICAL1  =L=  
+
+LOGICAL1..  - 10*Y(1) + X(2) + X(3) =L= 0 ; (LHS = -10)
+     
+
+---- LOGICAL2  =L=  
+
+LOGICAL2..  - 10*Y(2) + X(4) + X(5) =L= 0 ; (LHS = 0)
+     
+
+---- LOGICAL3  =L=  
+
+LOGICAL3..  - 10*Y(3) + X(9) =L= 0 ; (LHS = -10)
+     
+
+---- LOGICAL4  =L=  
+
+LOGICAL4..  - 10*Y(4) + X(12) + X(14) =L= 0 ; (LHS = 0)
+     
+
+---- LOGICAL5  =L=  
+
+LOGICAL5..  - 10*Y(5) + X(15) =L= 0 ; (LHS = 0)
+     
+
+---- LOGICAL6  =L=  
+
+LOGICAL6..  - 10*Y(6) + X(19) =L= 0 ; (LHS = 0)
+     
+
+---- LOGICAL7  =L=  
+
+LOGICAL7..  - 10*Y(7) + X(21) =L= 0 ; (LHS = 0)
+     
+
+---- LOGICAL8  =L=  
+
+LOGICAL8..  - 10*Y(8) + X(10) + X(17) =L= 0 ; (LHS = -10)
+     
+
+---- XOR12  =E=  
+
+XOR12..  Y(1) + Y(2) =E= 1 ; (LHS = 1)
+     
+
+---- XOR45  =E=  
+
+XOR45..  Y(4) + Y(5) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- XOR67  =E=  
+
+XOR67..  Y(6) + Y(7) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- IMP0  =L=  
+
+IMP0..  Y(1) - Y(3) - Y(4) - Y(5) =L= 0 ; (LHS = 0)
+     
+
+---- IMP1  =L=  
+
+IMP1..  Y(2) - Y(3) - Y(4) - Y(5) =L= 0 ; (LHS = -1)
+     
+
+---- IMP2  =L=  
+
+IMP2..  Y(3) - Y(8) =L= 0 ; (LHS = 0)
+     
+
+---- IMP3  =L=  
+
+IMP3..  - Y(1) - Y(2) + Y(3) =L= 0 ; (LHS = 0)
+     
+
+---- IMP4  =L=  
+
+IMP4..  - Y(1) - Y(2) + Y(4) =L= 0 ; (LHS = -1)
+     
+
+---- IMP5  =L=  
+
+IMP5..  Y(4) - Y(6) - Y(7) =L= 0 ; (LHS = 0)
+     
+
+---- IMP6  =L=  
+
+IMP6..  - Y(1) - Y(2) + Y(5) =L= 0 ; (LHS = -1)
+     
+
+---- IMP7  =L=  
+
+IMP7..  Y(5) - Y(8) =L= 0 ; (LHS = -1)
+     
+
+---- IMP8  =L=  
+
+IMP8..  - Y(4) + Y(6) =L= 0 ; (LHS = 0)
+     
+
+---- IMP9  =L=  
+
+IMP9..  - Y(4) + Y(7) =L= 0 ; (LHS = 0)
+     
+
+---- U1A  =L=  
+
+U1A..  6.38905609893065*Y(1) - X(2) + (1)*X(3) =L= 7.38905609893065 ; (LHS = 7.38905609893065)
+     
+
+---- U1B  =G=  
+
+U1B..  - 6.38905609893065*Y(1) - X(2) + (1)*X(3) =G= -5.38905609893065 ; (LHS = -5.38905609893065)
+     
+
+---- U1OFF2  =L=  
+
+U1OFF2..  - 6.38905609893065*Y(1) + X(2) =L= 0 ; (LHS = -6.38905609893065)
+     
+
+---- U1OFF3  =L=  
+
+U1OFF3..  - 2*Y(1) + X(3) =L= 0 ; (LHS = -2)
+     
+
+---- CF1  =E=  
+
+CF1..  - 5*Y(1) + CF(1) =E= 0 ; (LHS = -5, INFES = 5 ****)
+     
+
+---- U2A  =L=  
+
+U2A..  4.29449005047003*Y(2) - X(4) + (0.833333333333333)*X(5) =L= 5.29449005047003 ; (LHS = 1)
+     
+
+---- U2B  =G=  
+
+U2B..  - 4.29449005047003*Y(2) - X(4) + (0.833333333333333)*X(5) =G= -3.29449005047003 ; (LHS = 1)
+     
+
+---- U2OFF4  =L=  
+
+U2OFF4..  - 4.29449005047003*Y(2) + X(4) =L= 0 ; (LHS = 0)
+     
+
+---- U2OFF5  =L=  
+
+U2OFF5..  - 2*Y(2) + X(5) =L= 0 ; (LHS = 0)
+     
+
+---- CF2  =E=  
+
+CF2..  - 8*Y(2) + CF(2) =E= 0 ; (LHS = 0)
+     
+
+---- U3A  =L=  
+
+U3A..  4*Y(3) - X(8) + 1.5*X(9) + X(10) =L= 4 ; (LHS = 4)
+     
+
+---- U3B  =G=  
+
+U3B..  - 4*Y(3) - X(8) + 1.5*X(9) + X(10) =G= -4 ; (LHS = -4)
+     
+
+---- U3OFF9  =L=  
+
+U3OFF9..  - 2*Y(3) + X(9) =L= 0 ; (LHS = -2)
+     
+
+---- CF3  =E=  
+
+CF3..  - 6*Y(3) + CF(3) =E= 0 ; (LHS = -6, INFES = 6 ****)
+     
+
+---- U4A  =L=  
+
+U4A..  6.25*Y(4) + 1.25*X(12) - X(13) + 1.25*X(14) =L= 6.25 ; (LHS = 0)
+     
+
+---- U4B  =G=  
+
+U4B..  - 6.25*Y(4) + 1.25*X(12) - X(13) + 1.25*X(14) =G= -6.25 ; (LHS = 0)
+     
+
+---- U4OFF12  =L=  
+
+U4OFF12..  - 4*Y(4) + X(12) =L= 0 ; (LHS = 0)
+     
+
+---- U4OFF13  =L=  
+
+U4OFF13..  - 4*Y(4) + X(13) =L= 0 ; (LHS = 0)
+     
+
+---- U4OFF14  =L=  
+
+U4OFF14..  - Y(4) + X(14) =L= 0 ; (LHS = 0)
+     
+
+---- CF4  =E=  
+
+CF4..  - 10*Y(4) + CF(4) =E= 0 ; (LHS = 0)
+     
+
+---- U5A  =L=  
+
+U5A..  4*Y(5) + X(15) - 2*X(16) =L= 4 ; (LHS = 0)
+     
+
+---- U5B  =G=  
+
+U5B..  - 4*Y(5) + X(15) - 2*X(16) =G= -4 ; (LHS = 0)
+     
+
+---- U5OFF15  =L=  
+
+U5OFF15..  - 4*Y(5) + X(15) =L= 0 ; (LHS = 0)
+     
+
+---- U5OFF16  =L=  
+
+U5OFF16..  - 2*Y(5) + X(16) =L= 0 ; (LHS = 0)
+     
+
+---- CF5  =E=  
+
+CF5..  - 6*Y(5) + CF(5) =E= 0 ; (LHS = 0)
+     
+
+---- U6A  =L=  
+
+U6A..  2*Y(6) - X(19) + (0.666666666666667)*X(20) =L= 3 ; (LHS = 1)
+     
+
+---- U6B  =G=  
+
+U6B..  - 2*Y(6) - X(19) + (0.666666666666667)*X(20) =G= -1 ; (LHS = 1)
+     
+
+---- U6OFF19  =L=  
+
+U6OFF19..  - 2*Y(6) + X(19) =L= 0 ; (LHS = 0)
+     
+
+---- U6OFF20  =L=  
+
+U6OFF20..  - 1.64791843300216*Y(6) + X(20) =L= 0 ; (LHS = 0)
+     
+
+---- CF6  =E=  
+
+CF6..  - 7*Y(6) + CF(6) =E= 0 ; (LHS = 0)
+     
+
+---- U7A  =L=  
+
+U7A..  2*Y(7) - X(21) + (1)*X(22) =L= 3 ; (LHS = 1)
+     
+
+---- U7B  =G=  
+
+U7B..  - 2*Y(7) - X(21) + (1)*X(22) =G= -1 ; (LHS = 1)
+     
+
+---- U7OFF21  =L=  
+
+U7OFF21..  - 2*Y(7) + X(21) =L= 0 ; (LHS = 0)
+     
+
+---- U7OFF22  =L=  
+
+U7OFF22..  - 1.09861228866811*Y(7) + X(22) =L= 0 ; (LHS = 0)
+     
+
+---- CF7  =E=  
+
+CF7..  - 4*Y(7) + CF(7) =E= 0 ; (LHS = 0)
+     
+
+---- U8A  =L=  
+
+U8A..  3*Y(8) - X(10) - X(17) + (1)*X(18) =L= 4 ; (LHS = 4)
+     
+
+---- U8B  =G=  
+
+U8B..  - 3*Y(8) - X(10) - X(17) + (1)*X(18) =G= -2 ; (LHS = -2)
+     
+
+---- U8OFF10  =L=  
+
+U8OFF10..  - Y(8) + X(10) =L= 0 ; (LHS = -1)
+     
+
+---- U8OFF17  =L=  
+
+U8OFF17..  - 2*Y(8) + X(17) =L= 0 ; (LHS = -2)
+     
+
+---- U8OFF18  =L=  
+
+U8OFF18..  - 1.38629436111989*Y(8) + X(18) =L= 0 ; (LHS = -1.38629436111989)
+     
+
+---- U8OFF25  =L=  
+
+U8OFF25..  - 3*Y(8) + X(25) =L= 0 ; (LHS = -3)
+     
+
+---- CF8  =E=  
+
+CF8..  - 5*Y(8) + CF(8) =E= 0 ; (LHS = -5, INFES = 5 ****)
+     
+
+---- OBJECTIVE  =E=  
+
+OBJECTIVE..  PROF - X(2) + 10*X(3) - X(4) + 15*X(5) + 40*X(9) - 15*X(10) - 15*X(14) - 80*X(17) + 65*X(18) - 25*X(19) + 60*X(20) - 35*X(21) + 80*X(22) + 35*X(25) - CF(1) - CF(2) - CF(3) - CF(4) - CF(5) - CF(6) - CF(7) - CF(8) =E= 122 ; (LHS = 0, INFES = 122 ****)
+     
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 3
+Eight-Process Synthesis - Algebraic MINLP for BARON
+Column Listing      SOLVE EIGHT_PROCESS_BARON Using MINLP From line 562
+
+
+---- PROF  objective
+
+PROF
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       OBJECTIVE
+
+
+---- Y  process-unit selection
+
+Y(1)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+      -10       LOGICAL1
+        1       XOR12
+        1       IMP0
+       -1       IMP3
+       -1       IMP4
+       -1       IMP6
+        6.3891  U1A
+       -6.3891  U1B
+       -6.3891  U1OFF2
+       -2       U1OFF3
+       -5       CF1
+
+Y(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -10       LOGICAL2
+        1       XOR12
+        1       IMP1
+       -1       IMP3
+       -1       IMP4
+       -1       IMP6
+        4.2945  U2A
+       -4.2945  U2B
+       -4.2945  U2OFF4
+       -2       U2OFF5
+       -8       CF2
+
+Y(3)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+      -10       LOGICAL3
+       -1       IMP0
+       -1       IMP1
+        1       IMP2
+        1       IMP3
+        4       U3A
+       -4       U3B
+       -2       U3OFF9
+       -6       CF3
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- X  process streams
+
+X(1)
+                (.LO, .L, .UP, .M = 0, 0, 10.6835461494007, 0)
+        1       MASSBAL8
+
+X(2)
+                (.LO, .L, .UP, .M = 0, 0, 6.38905609893065, 0)
+       -1       MASSBAL8
+        1       LOGICAL1
+       -1       U1A
+       -1       U1B
+        1       U1OFF2
+       -1       OBJECTIVE
+
+X(3)
+                (.LO, .L, .UP, .M = 0, 0, 2, 0)
+        1       MASSBAL4
+        1       LOGICAL1
+       (1)      U1A
+       (1)      U1B
+        1       U1OFF3
+       10       OBJECTIVE
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- CF  fixed costs
+
+CF(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       CF1
+       -1       OBJECTIVE
+
+CF(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       CF2
+       -1       OBJECTIVE
+
+CF(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       CF3
+       -1       OBJECTIVE
+
+REMAINING 5 ENTRIES SKIPPED
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 4
+Eight-Process Synthesis - Algebraic MINLP for BARON
+Range Statistics    SOLVE EIGHT_PROCESS_BARON Using MINLP From line 562
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 1.000E+00, 1.220E+02] - Zero values observed as well
+Bound     [min, max] : [ 1.000E+00, 1.068E+01] - Zero values observed as well
+Matrix    [min, max] : [ 4.000E-01, 8.000E+01]
+
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 5
+Eight-Process Synthesis - Algebraic MINLP for BARON
+Model Statistics    SOLVE EIGHT_PROCESS_BARON Using MINLP From line 562
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          76     SINGLE EQUATIONS           76
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           42
+NON ZERO ELEMENTS           217     NON LINEAR N-Z             10
+CODE LENGTH                  44     CONSTANT POOL              18     DISCRETE VARIABLES          8
+
+
+GENERATION TIME      =        0.047 SECONDS      4 MB  40.1.1 23eb37fb WEX-WEI
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 6
+Eight-Process Synthesis - Algebraic MINLP for BARON
+Solution Report     SOLVE EIGHT_PROCESS_BARON Using MINLP From line 562
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   EIGHT_PROCESS_BARON   OBJECTIVE  PROF
+     TYPE    MINLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON                 FROM LINE  562
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE               68.0097
+
+ RESOURCE USAGE, LIMIT          2.520       300.000
+ ITERATION COUNT, LIMIT         0    2147483647
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       40.1.1 23eb37fb Aug 16, 2022          WEI x86 64bit/MS Window
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+*** This solver runs with a community license.
+
+===========================================================================
+ BARON version 22.7.23. Built: WIN-64 Sat Jul 23 23:35:28 EDT 2022
+
+ BARON is a product of The Optimization Firm.
+ For information on BARON, see https://minlp.com/about-baron
+
+ If you use this software, please cite publications from
+ https://minlp.com/baron-publications, such as: 
+
+ Kilinc, M. and N. V. Sahinidis, Exploiting integrality in the global
+ optimization of mixed-integer nonlinear programming problems in BARON,
+ Optimization Methods and Software, 33, 540-562, 2018.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP/QP: CLP/CBC, ILOG CPLEX                             
+ For NLP: MINOS, SNOPT, External NLP, IPOPT, FILTERSQP
+
+Solution      = 68.0097429224943  found at node 1
+Best possible = 68.0097428545
+Absolute gap  = 6.79942928627497E-8  optca = 1E-9
+Relative gap  = 9.99772825788179E-10  optcr = 1E-9
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU MASSBAL1            .              .              .             2.0000      
+---- EQU MASSBAL2            .              .              .            35.0000      
+---- EQU MASSBAL3            .              .              .              .          
+---- EQU MASSBAL4            .              .              .              .          
+---- EQU MASSBAL5            .              .              .              .          
+---- EQU MASSBAL6            .              .              .              .          
+---- EQU MASSBAL7            .              .              .              .          
+---- EQU MASSBAL8            .              .              .              .          
+---- EQU SPECS1            -INF             .              .           -16.6677      
+---- EQU SPECS2              .             0.2339        +INF             .          
+---- EQU SPECS3            -INF             .              .            -2.5000      
+---- EQU SPECS4              .             0.8000        +INF             .          
+---- EQU LOGICAL1          -INF             .              .              .          
+---- EQU LOGICAL2          -INF           -3.7055          .              .          
+---- EQU LOGICAL3          -INF             .              .              .          
+---- EQU LOGICAL4          -INF           -8.4000          .              .          
+---- EQU LOGICAL5          -INF             .              .              .          
+---- EQU LOGICAL6          -INF           -8.0000          .              .          
+---- EQU LOGICAL7          -INF             .              .              .          
+---- EQU LOGICAL8          -INF           -8.9474          .              .          
+---- EQU XOR12              1.0000         1.0000         1.0000          .          
+---- EQU XOR45              1.0000         1.0000         1.0000          .          
+---- EQU XOR67              1.0000         1.0000         1.0000          .          
+---- EQU IMP0              -INF           -1.0000          .              .          
+---- EQU IMP1              -INF             .              .              .          
+---- EQU IMP2              -INF           -1.0000          .              .          
+---- EQU IMP3              -INF           -1.0000          .              .          
+---- EQU IMP4              -INF             .              .              .          
+---- EQU IMP5              -INF             .              .              .          
+---- EQU IMP6              -INF           -1.0000          .              .          
+---- EQU IMP7              -INF           -1.0000          .              .          
+---- EQU IMP8              -INF             .              .              .          
+---- EQU IMP9              -INF           -1.0000          .              .          
+---- EQU U1A               -INF            1.0000         7.3891          .          
+---- EQU U1B               -5.3891         1.0000        +INF             .          
+---- EQU U1OFF2            -INF             .              .              .          
+---- EQU U1OFF3            -INF             .              .           -10.0000      
+---- EQU CF1                 .              .              .             1.0000      
+---- EQU U2A               -INF            5.2945         5.2945        -1.0000      
+---- EQU U2B               -3.2945        -3.2945        +INF             .          
+---- EQU U2OFF4            -INF      -5.32907E-15          .              .          
+---- EQU U2OFF5            -INF             .              .           -10.5879      
+---- EQU CF2                 .              .              .             1.0000      
+---- EQU U3A               -INF            0.4678         4.0000          .          
+---- EQU U3B               -4.0000         0.4678        +INF             .          
+---- EQU U3OFF9            -INF             .              .            -5.0000      
+---- EQU CF3                 .              .              .             1.0000      
+---- EQU U4A               -INF            6.2500         6.2500          .          
+---- EQU U4B               -6.2500        -6.2500        +INF            2.0000      
+---- EQU U4OFF12           -INF           -2.6667          .              .          
+---- EQU U4OFF13           -INF           -2.0000          .              .          
+---- EQU U4OFF14           -INF           -0.7333          .              .          
+---- EQU CF4                 .              .              .             1.0000      
+---- EQU U5A               -INF             .             4.0000          .          
+---- EQU U5B               -4.0000          .            +INF             .          
+---- EQU U5OFF15           -INF             .              .              .          
+---- EQU U5OFF16           -INF             .              .              .          
+---- EQU CF5                 .              .              .             1.0000      
+---- EQU U6A               -INF            3.0000         3.0000       -30.0000      
+---- EQU U6B               -1.0000        -1.0000        +INF             .          
+---- EQU U6OFF19           -INF             .              .            -3.0000      
+---- EQU U6OFF20           -INF      -4.66294E-15          .              .          
+---- EQU CF6                 .              .              .             1.0000      
+---- EQU U7A               -INF            1.0000         3.0000          .          
+---- EQU U7B               -1.0000         1.0000        +INF             .          
+---- EQU U7OFF21           -INF             .              .              .          
+---- EQU U7OFF22           -INF             .              .           -80.0000      
+---- EQU CF7                 .              .              .             1.0000      
+---- EQU U8A               -INF            4.0000         4.0000       -31.6677      
+---- EQU U8B               -2.0000        -2.0000        +INF             .          
+---- EQU U8OFF10           -INF           -0.5322          .              .          
+---- EQU U8OFF17           -INF           -1.4152          .              .          
+---- EQU U8OFF18           -INF           -0.6672          .              .          
+---- EQU U8OFF25           -INF           -2.4152          .              .          
+---- EQU CF8                 .              .              .             1.0000      
+---- EQU OBJECTIVE        122.0000       122.0000       122.0000         1.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR PROF              -INF           68.0097        +INF             .          
+
+  PROF  objective
+
+---- VAR Y  process-unit selection
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .             1.0000       -15.0000      
+2          .             1.0000         1.0000        -8.8814      
+3          .              .             1.0000        -4.0000      
+4          .             1.0000         1.0000        22.5000      
+5          .              .             1.0000         6.0000      
+6          .             1.0000         1.0000        61.0000      
+7          .              .             1.0000       -83.8890      
+8          .             1.0000         1.0000       100.0032      
+
+---- VAR X  process streams
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .             4.2945        10.6835          .          
+2           .              .             6.3891         1.0000      
+3           .              .             2.0000          .          
+4           .             4.2945         4.2945          .          
+5           .             2.0000         2.0000          .          
+6           .             0.6667         4.0000          .          
+7           .             0.6667         4.0000          .          
+8           .              .             4.0000          .          
+9           .              .             2.0000          .          
+10          .             0.4678         1.0000          .          
+11          .             1.3333         4.0000          .          
+12          .             1.3333         4.0000          .          
+13          .             2.0000         4.0000          .          
+14          .             0.2667         1.0000          .          
+15          .              .             4.0000          .          
+16          .              .             2.0000        35.0000      
+17          .             0.5848         2.0000          .          
+18          .             0.7191         1.3863          .          
+19          .             2.0000         2.0000          .          
+20          .             1.6479         1.6479          .          
+21          .              .             2.0000        37.0000      
+22          .              .             1.0986          .          
+23          .             1.6479         2.7465          .          
+24          .             1.3813         2.7465          .          
+25          .             0.5848         3.0000          .          
+
+---- VAR CF  fixed costs
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF             .          
+2          .             8.0000        +INF             .          
+3          .              .            +INF             .          
+4          .            10.0000        +INF             .          
+5          .              .            +INF             .          
+6          .             7.0000        +INF             .          
+7          .              .            +INF             .          
+8          .             5.0000        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 40.1.1  23eb37fb Aug 16, 2022          WEX-WEI x86 64bit/MS Windows - 10/05/26 11:06:07 Page 7
+Eight-Process Synthesis - Algebraic MINLP for BARON
+E x e c u t i o n
+
+
+----    570 VARIABLE PROF.L                =       68.010  objective
+
+----    570 VARIABLE Y.L  process-unit selection
+
+2 1.000,    4 1.000,    6 1.000,    8 1.000
+
+
+----    570 VARIABLE X.L  process streams
+
+1  4.294,    4  4.294,    5  2.000,    6  0.667,    7  0.667,    10 0.468,    11 1.333,    12 1.333,    13 2.000,    14 0.267,    17 0.585,    18 0.719,    19 2.000,    20 1.648,    23 1.648,    24 1.381,    25 0.585
+
+
+----    570 MODEL EIGHT_PROCESS_BARON.ModelStat =        1.000  
+            MODEL EIGHT_PROCESS_BARON.SolveStat =        1.000  
+            MODEL EIGHT_PROCESS_BARON.ResUsd =        2.520  
+
+
+EXECUTION TIME       =       19.547 SECONDS      4 MB  40.1.1 23eb37fb WEX-WEI
+
+
+USER: Small MUD - 5 User License                     S230705|0002AN-WIN
+      University of Twente, Faculty of Science and Technology (TNDC8321
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\Zondervane\Desktop\2026\Projects\CORAL\CORAL_Revision_2\GAMS\logmip3_baron_revised.gms
+Output     C:\Users\Zondervane\Desktop\2026\Projects\CORAL\CORAL_Revision_2\GAMS\logmip3_baron_revised.lst
